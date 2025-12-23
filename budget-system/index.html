@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Budget System</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>💰 Simple Budget</h1>
+            <button id="newBudgetBtn" class="btn-secondary">New Budget</button>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Current Budget Card -->
+            <section id="currentBudget" class="budget-card">
+                <h2>Current Budget</h2>
+                <div class="budget-info">
+                    <div class="budget-header">
+                        <h3 id="budgetName">No Active Budget</h3>
+                        <span id="budgetDates" class="date-range"></span>
+                    </div>
+                    
+                    <div class="budget-stats">
+                        <div class="stat">
+                            <span class="stat-label">Total Budget</span>
+                            <span id="totalBudget" class="stat-value">₱0</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Spent</span>
+                            <span id="totalSpent" class="stat-value">₱0</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Remaining</span>
+                            <span id="totalRemaining" class="stat-value">₱0</span>
+                        </div>
+                    </div>
+
+                    <div class="category-summary">
+                        <!-- Filled by JavaScript -->
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="addExpenseBtn" class="btn-primary">+ Add Expense</button>
+                        <button id="addMoneyBtn" class="btn-success">+ Add Money</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Section -->
+            <section class="charts-section">
+                <div class="chart-container">
+                    <canvas id="spendingChart"></canvas>
+                </div>
+                <div id="biggestExpense" class="highlight-card">
+                    <h3>💰 Biggest Expense</h3>
+                    <p>Loading...</p>
+                </div>
+            </section>
+
+            <!-- Daily Spending -->
+            <section class="daily-section">
+                <div class="section-header">
+                    <h2>📅 Daily Spending</h2>
+                    <input type="date" id="dailyDatePicker">
+                </div>
+                <div id="dailySummary" class="daily-summary">
+                    <p>Select a date to see spending summary</p>
+                </div>
+            </section>
+
+            <!-- Recent Transactions -->
+            <section class="transactions-section">
+                <div class="section-header">
+                    <h2>📝 Recent Transactions</h2>
+                    <button id="viewAllBtn" class="btn-text">View All</button>
+                </div>
+                <div id="recentTransactions" class="transactions-list">
+                    <!-- Filled by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Archive Section -->
+            <section class="archive-section">
+                <div class="section-header">
+                    <h2>📁 Budget Archive</h2>
+                </div>
+                <div id="budgetArchive" class="archive-list">
+                    <!-- Filled by JavaScript -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-screen="dashboard">
+                <span>📊</span>Dashboard
+            </button>
+            <button class="nav-btn" data-screen="add">
+                <span>➕</span>Add
+            </button>
+            <button class="nav-btn" data-screen="archive">
+                <span>📁</span>Archive
+            </button>
+            <button class="nav-btn" data-screen="reports">
+                <span>📈</span>Reports
+            </button>
+        </nav>
+    </div>
+
+    <!-- Modals -->
+    <div id="modalOverlay" class="modal-overlay">
+        <!-- New Budget Modal -->
+        <div id="newBudgetModal" class="modal" style="display: none;">
+            <div class="modal-header">
+                <h3>Create New Budget</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Budget Name</label>
+                    <input type="text" id="budgetTitle" placeholder="e.g., December Budget">
+                </div>
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="form-group">
+                    <label>End Date</label>
+                    <input type="date" id="endDate">
+                </div>
+                <div class="form-group">
+                    <label>Total Budget Amount</label>
+                    <input type="number" id="budgetAmount" placeholder="₱">
+                </div>
+                <button id="createBudgetBtn" class="btn-primary">Create Budget</button>
+            </div>
+        </div>
+
+        <!-- Add Expense Modal -->
+        <div id="addExpenseModal" class="modal" style="display: none;">
+            <div class="modal-header">
+                <h3>Add Expense</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" id="expenseAmount" placeholder="₱" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="expenseCategory">
+                        <option value="transportation">🚗 Transportation</option>
+                        <option value="food">🍔 Food</option>
+                        <option value="lrt">🚆 LRT Fare</option>
+                    </select>
+                </div>
+                <div class="form-group" id="lrtDiscountGroup" style="display: none;">
+                    <label>
+                        <input type="checkbox" id="applyDiscount"> Apply 50% Student Discount
+                    </label>
+                    <div id="discountInfo" class="discount-info" style="display: none;">
+                        <p>You pay: ₱<span id="discountedAmount">0</span></p>
+                        <p>You save: ₱<span id="savedAmount">0</span></p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description (Optional)</label>
+                    <input type="text" id="expenseDescription" placeholder="What was this for?">
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="expenseDate">
+                </div>
+                <button id="saveExpenseBtn" class="btn-primary">Save Expense</button>
+            </div>
+        </div>
+
+        <!-- Add Money Modal -->
+        <div id="addMoneyModal" class="modal" style="display: none;">
+            <div class="modal-header">
+                <h3>Add Money</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Amount to Add</label>
+                    <input type="number" id="moneyAmount" placeholder="₱" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Source (Optional)</label>
+                    <input type="text" id="moneySource" placeholder="e.g., Parents, Bonus, Gift">
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="moneyDate">
+                </div>
+                <button id="saveMoneyBtn" class="btn-success">Add Money</button>
+            </div>
+        </div>
+
+        <!-- View Daily Summary Modal -->
+        <div id="dailySummaryModal" class="modal" style="display: none;">
+            <div class="modal-header">
+                <h3 id="dailySummaryTitle">Daily Summary</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="dailyDetails"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="budgetManager.js"></script>
+    <script src="transactionManager.js"></script>
+    <script src="chartManager.js"></script>
+    <script src="uiManager.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
